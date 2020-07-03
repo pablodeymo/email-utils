@@ -4,10 +4,26 @@ use lettre::smtp::extension::ClientId;
 use lettre::smtp::ConnectionReuseParameters;
 use lettre::{SmtpClient, SmtpTransport, Transport}; //SendableEmail, Envelope, EmailAddress,
 
-pub fn main() {
-//    let mut mailer = connect_mailer();
+pub fn connect_mailer() -> Result<SmtpTransport> {
+    let smtp_server = std::env::var("SMTP_SERVER")
+        .map_err(|e| anyhow!("Error getting SMTP_SERVER value: {}", e))?;
+    let domain_server = std::env::var("DOMAIN_SERVER")
+        .map_err(|e| anyhow!("Error getting DOMAIN_SERVER value: {}", e))?;
+    let smtp_username = std::env::var("SMTP_USERNAME")
+        .map_err(|e| anyhow!("Error getting SMTP_USERNAME value: {}", e))?;
+    let smtp_password = std::env::var("SMTP_PASSWORD")
+        .map_err(|e| anyhow!("Error getting SMTP_PASSWORD value: {}", e))?;
 
-//    mailer.close();
+    Ok(
+        SmtpClient::new_simple(&smtp_server) // Connect to a remote server on a custom port
+            .map_err(|e| anyhow!("Error building new SmtpClient. {}", e))?
+            .hello_name(ClientId::Domain(domain_server)) // Set the name sent during EHLO/HELO, default is `localhost`
+            .credentials(Credentials::new(smtp_username, smtp_password)) // Add credentials for authentication
+            .smtp_utf8(true) // Enable SMTPUTF8 if the server supports it
+            .authentication_mechanism(Mechanism::Plain) // Configure expected authentication mechanism
+            .connection_reuse(ConnectionReuseParameters::ReuseUnlimited) // Enable connection reuse
+            .transport(),
+    )
 }
 
 pub fn sendmail(
