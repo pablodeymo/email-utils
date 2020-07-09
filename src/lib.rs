@@ -1,10 +1,24 @@
-use anyhow::{anyhow, Result};
-use lettre::smtp::authentication::{Credentials, Mechanism};
-use lettre::smtp::extension::ClientId;
-use lettre::smtp::ConnectionReuseParameters;
-use lettre::{SmtpClient, SmtpTransport, Transport}; //SendableEmail, Envelope, EmailAddress,
+use arraystring::{typenum::U255, ArrayString};
+use validator::ValidationError;
 
-pub fn connect_mailer() -> Result<SmtpTransport> {
+pub type Mail = ArrayString<U255>;
+
+pub fn validate_email(mail: &Mail) -> Result<(), ValidationError> {
+    if mailchecker::is_valid(mail) {
+        return Err(ValidationError::new("Invalid mail"));
+    }
+
+    Ok(())
+}
+
+#[cfg(feature = "sendmail")]
+pub fn connect_mailer() -> anyhow::Result<SmtpTransport> {
+    use anyhow::anyhow;
+    use lettre::smtp::authentication::{Credentials, Mechanism};
+    use lettre::smtp::extension::ClientId;
+    use lettre::smtp::ConnectionReuseParameters;
+    use lettre::{SmtpClient, SmtpTransport, Transport};
+
     let smtp_server = std::env::var("SMTP_SERVER")
         .map_err(|e| anyhow!("Error getting SMTP_SERVER value: {}", e))?;
     let domain_server = std::env::var("DOMAIN_SERVER")
@@ -26,15 +40,22 @@ pub fn connect_mailer() -> Result<SmtpTransport> {
     )
 }
 
+#[cfg(feature = "sendmail")]
 pub fn sendmail(
-    mailer: &mut SmtpTransport,
+    mailer: &mut lettre::SmtpTransport,
     dest_address: &str,
     dest_name: &str,
     from_address: &str,
     from_name: &str,
     subject: &str,
     text: &str,
-) -> Result<()> {
+) -> anyhow::Result<()> {
+    use anyhow::anyhow;
+    use lettre::smtp::authentication::{Credentials, Mechanism};
+    use lettre::smtp::extension::ClientId;
+    use lettre::smtp::ConnectionReuseParameters;
+    use lettre::{SmtpClient, SmtpTransport, Transport};
+
     let email = lettre_email::EmailBuilder::new()
         .to((dest_address, dest_name))
         .from((from_address, from_name))

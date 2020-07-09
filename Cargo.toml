@@ -8,5 +8,12 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0"
-lettre = "0.9"
-lettre_email = "0.9"
+lettre = { version = "0.9", optional = true }
+lettre_email = { version = "0.9", optional = true }
+validator = "0.10.1" # para validar estructuras al interpretarlas
+validator_derive = "0.10.1"
+mailchecker = "3.3.9"
+arraystring = { version = "0.3.0", features = ["serde-traits"] }
+
+[features]
+sendmail = ["lettre", "lettre_email"]
