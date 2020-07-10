@@ -5,10 +5,10 @@ pub type Mail = ArrayString<U255>;
 
 pub fn validate_email(mail: &Mail) -> Result<(), ValidationError> {
     if mailchecker::is_valid(mail) {
-        return Err(ValidationError::new("Invalid mail"));
+        Ok(())
+    } else {
+        Err(ValidationError::new("Invalid mail"))
     }
-
-    Ok(())
 }
 
 #[cfg(feature = "sendmail")]
