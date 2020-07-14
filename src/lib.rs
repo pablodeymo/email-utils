@@ -12,12 +12,15 @@ pub fn validate_email(mail: &Mail) -> Result<(), ValidationError> {
 }
 
 #[cfg(feature = "sendmail")]
+pub type SmtpTransport = lettre::SmtpTransport;
+
+#[cfg(feature = "sendmail")]
 pub fn connect_mailer() -> anyhow::Result<SmtpTransport> {
     use anyhow::anyhow;
     use lettre::smtp::authentication::{Credentials, Mechanism};
     use lettre::smtp::extension::ClientId;
     use lettre::smtp::ConnectionReuseParameters;
-    use lettre::{SmtpClient, SmtpTransport, Transport};
+    use lettre::SmtpClient;
 
     let smtp_server = std::env::var("SMTP_SERVER")
         .map_err(|e| anyhow!("Error getting SMTP_SERVER value: {}", e))?;
@@ -42,7 +45,7 @@ pub fn connect_mailer() -> anyhow::Result<SmtpTransport> {
 
 #[cfg(feature = "sendmail")]
 pub fn sendmail(
-    mailer: &mut lettre::SmtpTransport,
+    mailer: &mut SmtpTransport,
     dest_address: &str,
     dest_name: &str,
     from_address: &str,
@@ -51,10 +54,7 @@ pub fn sendmail(
     text: &str,
 ) -> anyhow::Result<()> {
     use anyhow::anyhow;
-    use lettre::smtp::authentication::{Credentials, Mechanism};
-    use lettre::smtp::extension::ClientId;
-    use lettre::smtp::ConnectionReuseParameters;
-    use lettre::{SmtpClient, SmtpTransport, Transport};
+    use lettre::Transport;
 
     let email = lettre_email::EmailBuilder::new()
         .to((dest_address, dest_name))
